@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control AV - Embajada de Canadá</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --canada-red: #D52B1E;
+            --canada-white: #FFFFFF;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(90deg, var(--canada-red) 0%, var(--canada-white) 50%, var(--canada-red) 100%);
+        }
+        
+        .maple-leaf {
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="%23D52B1E" d="M256,0c-8.8,0-16,7.2-16,16v32c0,8.8,7.2,16,16,16s16-7.2,16-16V16C272,7.2,264.8,0,256,0z M256,448c-8.8,0-16,7.2-16,16v32c0,8.8,7.2,16,16,16s16-7.2,16-16v-32C272,455.2,264.8,448,256,448z M113.4,102.6c-6.2-6.2-16.4-6.2-22.6,0l-22.6,22.6c-6.2,6.2-6.2,16.4,0,22.6s16.4,6.2,22.6,0l22.6-22.6C119.6,119,119.6,108.8,113.4,102.6z M443.8,432.2c-6.2-6.2-16.4-6.2-22.6,0l-22.6,22.6c-6.2,6.2-6.2,16.4,0,22.6s16.4,6.2,22.6,0l22.6-22.6C450,448.6,450,438.4,443.8,432.2z M256,64c-106,0-192,86-192,192s86,192,192,192s192-86,192-192S362,64,256,64z M362.8,244.8c2.8-2.8,4.4-6.6,4.4-10.6c0-4-1.6-7.8-4.4-10.6l-47.2-47.2c-5.8-5.8-15.4-5.8-21.2,0s-5.8,15.4,0,21.2l26,26l-78.8,78.8l-26-26c-5.8-5.8-15.4-5.8-21.2,0s-5.8,15.4,0,21.2l47.2,47.2c2.8,2.8,6.6,4.4,10.6,4.4c4,0,7.8-1.6,10.6-4.4l71.2-71.2L362.8,244.8z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .device-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--canada-red);
+        }
+        
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .status-connected {
+            background-color: rgba(0, 200, 0, 0.1);
+            border-left: 4px solid #00C000;
+        }
+        
+        .status-disconnected {
+            background-color: rgba(200, 0, 0, 0.1);
+            border-left: 4px solid #C00000;
+            filter: grayscale(60%);
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--canada-red);
+            cursor: pointer;
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--canada-red);
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: var(--canada-red);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #b82217;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="header-gradient py-4 shadow-md">
+            <div class="container mx-auto px-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="maple-leaf"></div>
+                    <h1 class="text-white text-xl font-bold">EMBAJADA DE CANADÁ</h1>
+                </div>
+                <div class="text-white text-sm">
+                    <span id="current-date"></span>
+                    <span class="mx-2">•</span>
+                    <span id="current-time"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Control de Audio y Video</h2>
+                <p class="text-gray-600">Administración centralizada para sistemas de videoconferencia</p>
+                <div id="network-status" class="mt-2 flex items-center justify-center">
+                    <div class="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
+                    <span class="text-sm text-gray-500">Verificando estado de red...</span>
+                </div>
+            </div>
+
+            <!-- Teams Controller -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 border-t-4 border-red-600">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <img src="https://placehold.co/40x40" alt="Logo de Microsoft Teams" class="mr-3" />
+                        <h3 class="text-xl font-semibold text-gray-800">Microsoft Teams</h3>
+                    </div>
+                    <button id="teams-refresh" class="btn-primary px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Actualizar
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Audio Controls -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            </svg>
+                            Control de Audio
+                        </h4>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="text-gray-600">Volumen general</label>
+                                <span id="master-volume-value" class="text-gray-800 font-medium">70%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="70" class="volume-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+                            <div class="flex items-center justify-between mt-6">
+                                <label class="text-gray-600">Micrófono</label>
+                                <span id="mic-volume-value" class="text-gray-800 font-medium">60%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="60" class="volume-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+                            <div class="flex space-x-2 mt-4">
+                                <button class="btn-primary px-3 py-1 rounded-md text-sm font-medium">Silenciar</button>
+                                <button class="bg-white border border-gray-300 px-3 py-1 rounded-md text-sm font-medium">Reiniciar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video Controls -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Control de Video
+                        </h4>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="text-gray-600">Brillo</label>
+                                <span id="brightness-value" class="text-gray-800 font-medium">75%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="75" class="volume-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+                            <div class="flex items-center justify-between mt-6">
+                                <label class="text-gray-600">Contraste</label>
+                                <span id="contrast-value" class="text-gray-800 font-medium">50%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="50" class="volume-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+                            <div class="grid grid-cols-2 gap-2 mt-4">
+                                <button class="btn-primary px-3 py-1 rounded-md text-sm font-medium">Invertir imagen</button>
+                                <button class="bg-white border border-gray-300 px-3 py-1 rounded-md text-sm font-medium">Reposicionar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connected Devices -->
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Dispositivos Conectados</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Poly X52 -->
+                <div id="poly-x52-card" class="device-card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/40x40" alt="Logo de Poly X52" class="mr-3" />
+                        <div>
+                            <h4 class="font-medium text-gray-800">Poly X52</h4>
+                            <div class="flex items-center mt-1">
+                                <div id="poly-status" class="w-2 h-2 rounded-full bg-gray-400 mr-2"></div>
+                                <span id="poly-status-text" class="text-xs text-gray-500">Desconectado</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Volumen altavoz</label>
+                            <input type="range" min="0" max="100" value="50" class="volume-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button class="btn-primary px-3 py-1 rounded-md text-xs font-medium w-full">Configurar</button>
+                            <button class="bg-white border border-gray-300 px-3 py-1 rounded-md text-xs font-medium w-full">Reiniciar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AMX Varia SL-50 -->
+                <div id="amx-card" class="device-card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/40x40" alt="Logo de AMX Varia SL-50" class="mr-3" />
+                        <div>
+                            <h4 class="font-medium text-gray-800">AMX Varia SL-50</h4>
+                            <div class="flex items-center mt-1">
+                                <div id="amx-status" class="w-2 h-2 rounded-full bg-gray-400 mr-2"></div>
+                                <span id="amx-status-text" class="text-xs text-gray-500">Desconectado</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Brillante pantalla</label>
+                            <input type="range" min="0" max="100" value="30" class="volume-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button class="btn-primary px-3 py-1 rounded-md text-xs font-medium w-full">Configurar</button>
+                            <button class="bg-white border border-gray-300 px-3 py-1 rounded-md text-xs font-medium w-full">Calibrar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MU 1300 -->
+                <div id="mu-card" class="device-card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/40x40" alt="Logo de MU 1300" class="mr-3" />
+                        <div>
+                            <h4 class="font-medium text-gray-800">MU 1300</h4>
+                            <div class="flex items-center mt-1">
+                                <div id="mu-status" class="w-2 h-2 rounded-full bg-gray-400 mr-2"></div>
+                                <span id="mu-status-text" class="text-xs text-gray-500">Desconectado</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Sensibilidad micrófono</label>
+                            <input type="range" min="0" max="100" value="70" class="volume-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button class="btn-primary px-3 py-1 rounded-md text-xs font-medium w-full">Configurar</button>
+                            <button class="bg-white border border-gray-300 px-3 py-1 rounded-md text-xs font-medium w-full">Prueba audio</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6">
+            <div class="container mx-auto px-4 text-center">
+                <div class="flex justify-center space-x-6 mb-4">
+                    <a href="#" class="text-gray-300 hover:text-white">Política de privacidad</a>
+                    <a href="#" class="text-gray-300 hover:text-white">Términos de servicio</a>
+                    <a href="#" class="text-gray-300 hover:text-white">Contacto técnico</a>
+                </div>
+                <div class="text-sm text-gray-400">
+                    <p>© 2025 Gobierno de Canadá. Todos los derechos reservados.</p>
+                    <p class="mt-1">Sistema de control AV - Versión 2.1</p>
+                    <p class="mt-1">INGEETRONIC_S.R.L.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Update current date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('es-ES', options);
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('es-ES');
+        }
+        
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Simulate device connection status
+        function simulateDeviceConnections() {
+            const devices = [
+                { id: 'poly', name: 'Poly X52', interval: 5000 },
+                { id: 'amx', name: 'AMX Varia SL-50', interval: 7000 },
+                { id: 'mu', name: 'MU 1300', interval: 9000 }
+            ];
+            
+            devices.forEach(device => {
+                setInterval(() => {
+                    toggleDeviceStatus(device.id, device.name);
+                }, device.interval);
+            });
+            
+            // Initial network status check
+            checkNetworkStatus();
+        }
+        
+        function toggleDeviceStatus(deviceId, deviceName) {
+            const card = document.getElementById(`${deviceId}-card`);
+            const statusDot = document.getElementById(`${deviceId}-status`);
+            const statusText = document.getElementById(`${deviceId}-status-text`);
+            
+            const isConnected = card.classList.contains('status-connected');
+            
+            if (isConnected) {
+                card.classList.remove('status-connected');
+                card.classList.add('status-disconnected');
+                statusDot.classList.remove('bg-green-500');
+                statusDot.classList.add('bg-gray-400');
+                statusText.textContent = 'Desconectado';
+                console.log(`${deviceName} se ha desconectado`);
+            } else {
+                card.classList.remove('status-disconnected');
+                card.classList.add('status-connected');
+                statusDot.classList.remove('bg-gray-400');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = 'Conectado';
+                console.log(`${deviceName} se ha conectado`);
+            }
+        }
+        
+        function checkNetworkStatus() {
+            const networkStatus = document.getElementById('network-status');
+            const isOnline = Math.random() > 0.3; // 70% chance to be online
+            
+            setTimeout(() => {
+                if (isOnline) {
+                    networkStatus.innerHTML = `
+                        <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                        <span class="text-sm text-gray-700">Conectado a la red</span>
+                    `;
+                } else {
+                    networkStatus.innerHTML = `
+                        <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                        <span class="text-sm text-gray-700">Desconectado de la red</span>
+                    `;
+                }
+                
+                // Check again in 10 seconds
+                setTimeout(checkNetworkStatus, 10000);
+            }, 1500);
+        }
+        
+        // Volume control updates
+        document.querySelectorAll('.volume-slider').forEach(slider => {
+            slider.addEventListener('input', function() {
+                const valueId = this.id.replace('slider', 'value') || `${this.id}-value`;
+                const valueElement = document.getElementById(valueId);
+                if (valueElement) {
+                    valueElement.textContent = `${this.value}%`;
+                }
+            });
+        });
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            simulateDeviceConnections();
+            
+            // Trigger initial connection events
+            setTimeout(() => {
+                document.getElementById('poly-x52-card').classList.add('status-connected');
+                document.getElementById('poly-status').classList.add('bg-green-500');
+                document.getElementById('poly-status-text').textContent = 'Conectado';
+                
+                setTimeout(() => {
+                    document.getElementById('amx-card').classList.add('status-connected');
+                    document.getElementById('amx-status').classList.add('bg-green-500');
+                    document.getElementById('amx-status-text').textContent = 'Conectado';
+                    
+                    setTimeout(() => {
+                        document.getElementById('mu-card').classList.add('status-connected');
+                        document.getElementById('mu-status').classList.add('bg-green-500');
+                        document.getElementById('mu-status-text').textContent = 'Conectado';
+                    }, 2000);
+                }, 2000);
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
+
